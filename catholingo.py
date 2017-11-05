@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #coding: utf8
 
+import os
 import pydle
 import speechdb
 from speechdb import Speech, Word
@@ -87,7 +88,8 @@ class CathoLingo(pydle.Client):
 	def on_connect(self):
 		speechdb.connect()
 		speechdb.create_tables()
-		self.join('#amdo')
+		for chan in os.environ.get('CHANNELS', '#amdo').split():
+			self.join(chan)
 
 	def set_commands(self, *args):
 		self.commands = []
