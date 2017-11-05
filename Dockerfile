@@ -1,6 +1,8 @@
 FROM python:3
 
-RUN pip install peewee pydle redis pymysql
+ADD requirements.txt .
+
+RUN pip install -r ./requirements.txt
 
 ADD catholingo.py .
 ADD speechdb.py .
