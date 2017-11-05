@@ -7,7 +7,7 @@ from playhouse.db_url import connect
 import datetime
 import os
 
-db = connect(os.environ.get('DATABASE') or 'sqlite:///speech.db')
+db = connect(os.environ.get('DATABASE') or 'sqlite:///catholingo.db')
 
 def none_or(field, val):
     return field == val if not (val is None) else field >> None

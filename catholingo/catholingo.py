@@ -148,7 +148,7 @@ class CathoLingo(pydle.Client):
 				Speech.create(word=word, user=user, chan=channel).save()
 
 if __name__ == '__main__':
-	client = CathoLingo('CathoLingo', realname='la pizzeria')
+	client = CathoLingo(os.environ.get('USERNAME', 'CathoLingo'), realname=os.environ.get('REALNAME', 'la pizzeria'))
 	client.set_commands(RandomCommand, SpeakforCommand)
-	client.connect('chat.freenode.net', 6697, tls=True, tls_verify=False)
+	client.connect(os.environ.get('IRC_HOST', 'chat.freenode.net'), int(os.environ.get('IRC_PORT', 6697)), tls=True, tls_verify=False)
 	client.handle_forever()
