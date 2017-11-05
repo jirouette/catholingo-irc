@@ -54,12 +54,40 @@ class RandomCommand(TalkativeCommand):
 		else:
 			return "no result"
 
+class SpeakforCommand(TalkativeCommand):
+	COMMAND = "speakfor"
+
+	def talk(self, source, target, message):
+		if len(message.split()) < 2:
+			return ":("
+		user = message.split()[1]
+		word = Word.select().join(Speech).where((Word.previous_word >> None) & (Speech.user == user)).order_by(speechdb.random()).first()
+		if word:
+			pprev_word = None
+			prev_word = word.word
+			payload = word.word
+			maxlength = 100
+			while maxlength > 0:
+				maxlength -= 1
+				pprev_cond = speechdb.none_or(Word.pprevious_word, pprev_word)
+				prev_cond = speechdb.none_or(Word.previous_word, prev_word)
+				word = Word.select().join(Speech).where(pprev_cond & prev_cond & (Speech.user == user)).order_by(speechdb.random()).first()
+				if word:
+					payload += " " + word.word
+					if word.next_word is None:
+						break
+					pprev_word = prev_word
+					prev_word = word.word
+				else:
+					break
+			return payload
+		return "nope "+user+" :("
+
 class CathoLingo(pydle.Client):
 	def on_connect(self):
 		speechdb.connect()
 		speechdb.create_tables()
 		self.join('#amdo')
-		self.join('#salsifis')
 
 	def set_commands(self, *args):
 		self.commands = []
@@ -119,6 +147,6 @@ class CathoLingo(pydle.Client):
 
 if __name__ == '__main__':
 	client = CathoLingo('CathoLingo', realname='la pizzeria')
-	client.set_commands(RandomCommand)
+	client.set_commands(RandomCommand, SpeakforCommand)
 	client.connect('chat.freenode.net', 6697, tls=True, tls_verify=False)
 	client.handle_forever()
