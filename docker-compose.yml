@@ -8,9 +8,11 @@ services:
       restart: always
       links:
         - db
+        - redis
       environment:
           DATABASE: mysql://root:catholingo@db/catholingo
           CHANNELS: "#catholingo"
+          REDIS_HOST: "redis"
     db:
       container_name: "catholingo_db"
       restart: always
@@ -20,3 +22,7 @@ services:
       environment:
         MYSQL_ROOT_PASSWORD: catholingo
         MYSQL_DATABASE: catholingo
+    redis:
+        container_name: "catholingo_redis"
+        restart: always
+        image: "redis:latest"
