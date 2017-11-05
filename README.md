@@ -14,7 +14,12 @@ You can also build the project manually (with a supervisord or something). In th
 
 Environment vars :
 
-- `DATABASE` : the url formatted database location (see [peewee documentation](http://docs.peewee-orm.com/en/latest/peewee/database.html#connecting-using-a-database-url))
+- `DATABASE` : the url formatted database location (see [peewee documentation](http://docs.peewee-orm.com/en/latest/peewee/database.html#connecting-using-a-database-url)) (default, *sqlite:///catholingo.db*)
+- `CHANNELS` : list of channels (including #) separated by spaces (default *#catholingo*)
+- `USERNAME` : Username for the IRC server (default *CathoLingo*)
+- `REALNAME` : Realname for the IRC server (default *la pizzeria*)
+- `IRC_HOST` : IRC server to connect (default *chat.freenode.net*)
+- `IRC_PORT` : IRC port to use (default *6697*)
 
 ## Usage
 
