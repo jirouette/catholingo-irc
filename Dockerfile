@@ -4,7 +4,7 @@ ADD requirements.txt .
 
 RUN pip install -r ./requirements.txt
 
-ADD catholingo.py .
-ADD speechdb.py .
+ADD catholingo/catholingo.py .
+ADD catholingo/speechdb.py .
 
 CMD ["python", "./catholingo.py"]

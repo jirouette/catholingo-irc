@@ -1,20 +1,22 @@
-catholingo:
-  build: .
-  container_name: "catholingo"
-  restart: always
-  links:
-    - db
-  volumes:
-    - .:/catholingo
-  environment:
-      DATABASE: mysql://root:catholingo@db/catholingo
-      CHANNELS: "#salsifis #amdo"
-db:
-  container_name: "catholingo_db"
-  restart: always
-  image: "mysql:latest"
-  volumes:
-    - catholingodata:/var/lib/mysql
-  environment:
-    MYSQL_ROOT_PASSWORD: catholingo
-    MYSQL_DATABASE: catholingo
+version: '2'
+volumes:
+    catholingodata:
+services:
+    catholingo:
+      container_name: "catholingo"
+      build: .
+      restart: always
+      links:
+        - db
+      environment:
+          DATABASE: mysql://root:catholingo@db/catholingo
+          CHANNELS: "#catholingo"
+    db:
+      container_name: "catholingo_db"
+      restart: always
+      image: "mysql:latest"
+      volumes:
+        - catholingodata:/var/lib/mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: catholingo
+        MYSQL_DATABASE: catholingo
