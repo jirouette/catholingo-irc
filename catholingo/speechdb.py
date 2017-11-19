@@ -3,17 +3,22 @@
 
 from peewee import (MySQLDatabase, Model, CharField, ForeignKeyField, TextField,
                     DateTimeField, BooleanField, IntegerField, fn)
-from playhouse.db_url import connect
+from playhouse.db_url import connect as connect_url
 import datetime
 import os
+import sys
 
-db = connect(os.environ.get('DATABASE') or 'sqlite:///catholingo.db')
+db = connect_url(os.environ.get('DATABASE'))
+
 
 def none_or(field, val):
     return field == val if not (val is None) else field >> None
 
+def execute(sql):
+    return db.execute_sql(sql)
+
 def random():
-    return fn.Random()
+    return fn.Rand() if type(db) is MySQLDatabase else fn.Random()
 
 def connect():
     if db.is_closed():
@@ -28,23 +33,21 @@ def transaction():
 
 def create_tables():
     connect()
-    if not Word.table_exists():
-        Word.create_table(True)
-    if not Speech.table_exists():
-        Speech.create_table(True)
+    with transaction():
+        db.create_tables([Word, Speech], safe=True)
 
 class BaseModel(Model):
     class Meta:
         database = db
 
-class Word(Model):
+class Word(BaseModel):
     pprevious_word = CharField(null=True, max_length=100)
     previous_word = CharField(null=True, max_length=100)
     word        = CharField(max_length=100)
     next_word  = CharField(null=True, max_length=100)
     nnext_word  = CharField(null=True, max_length=100)
 
-class Speech(Model):
+class Speech(BaseModel):
     word = ForeignKeyField(Word)
     user = CharField(max_length=30)
     chan = CharField(max_length=30)

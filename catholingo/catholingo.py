@@ -7,12 +7,12 @@ import redis
 import speechdb
 import time
 import json
+import sys
 from speechdb import Speech, Word
 from threading import Thread
 
 class CommandListener(Thread):
 	def __init__(self, client):
-		print("init listener")
 		Thread.__init__(self)
 		self.client = client
 
@@ -23,7 +23,6 @@ class CommandListener(Thread):
 		while True:
 			message = self.pubsub.get_message()
 			if message:
-				print(message)
 				self.parse_message(message)
 			time.sleep(1)
 
@@ -35,7 +34,6 @@ class CommandListener(Thread):
 			args = data.get('args', list())
 			kwargs = data.get('kwargs', dict())
 			if hasattr(self.client, method):
-				print(getattr(self.client, method), args, kwargs)
 				return getattr(self.client, method)(*args, **kwargs)
 
 class CommandOrder(object):
@@ -45,8 +43,6 @@ class CommandOrder(object):
 
 class CathoLingo(pydle.Client):
 	def on_connect(self):
-		speechdb.connect()
-		speechdb.create_tables()
 		for chan in os.environ.get('CHANNELS', '#amdo').split():
 			self.join(chan)
 
@@ -56,7 +52,7 @@ class CathoLingo(pydle.Client):
 
 	def command(self, source, target, message):
 		command = CommandOrder()
-		if "CathoLingo" in message:
+		if "catholingo" in message.lower():
 			command.order(source, target, "!speak")
 		elif message[0] == "!":
 			command.order(source, target, message)
@@ -65,6 +61,7 @@ class CathoLingo(pydle.Client):
 		if message[0] in ["!", ",", ";", "~", "#", ".", "§"]:
 			return
 
+		speechdb.connect()
 		with speechdb.transaction():
 			message = message.split()
 			for i, word in enumerate(message):
@@ -87,8 +84,17 @@ class CathoLingo(pydle.Client):
 									   word=message[i])
 					word.save()
 				Speech.create(word=word, user=user, chan=channel).save()
+		speechdb.close()
 
 if __name__ == '__main__':
+	if os.environ.get('DEBUG'):
+		import logging
+		logger = logging.getLogger('peewee')
+		logger.setLevel(logging.DEBUG)
+		logger.addHandler(logging.StreamHandler())
+	speechdb.connect()
+	speechdb.create_tables()
+	speechdb.close()
 	client = CathoLingo(os.environ.get('USERNAME', 'CathoLingo'), realname=os.environ.get('REALNAME', 'la pizzeria'))
 	client.connect(os.environ.get('IRC_HOST', 'chat.freenode.net'), int(os.environ.get('IRC_PORT', 6697)), tls=True, tls_verify=False)
 	CommandListener(client).start()
