@@ -13,8 +13,9 @@ class CommandOrder(object):
 	COMMAND = "!test"
 
 	def __init__(self):
-		if self.__class__.COMMAND[0] == "!":
-			self.__class__.COMMAND = self.__class__.COMMAND[1:]
+		if type(self.__class__.COMMAND) is not list:
+			self.__class__.COMMAND = [self.__class__.COMMAND]
+		self.__class__.COMMAND = [c[1:] if c[0] == "!" else c for c in self.__class__.COMMAND]
 
 	def connect(self):
 		r = redis.StrictRedis(host=os.environ.get('REDIS_HOST', 'localhost'), port=int(os.environ.get('REDIS_PORT', 6379)), db=0)
@@ -34,7 +35,7 @@ class CommandOrder(object):
 		data = message.get('data')
 		if type(data) is bytes:
 			data = data.decode('utf-8').split()
-			if data[2][1:] == self.__class__.COMMAND:
+			if data[2][1:] in self.__class__.COMMAND:
 				self.command(data[0], data[1], data[3:])
 
 	def command(self, source, target, message):
