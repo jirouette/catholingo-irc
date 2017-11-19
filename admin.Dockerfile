@@ -6,6 +6,6 @@ RUN pip install -r ./requirements.txt
 
 ADD catholingo/commands/admin.py .
 ADD catholingo/commands.py .
-ADD catholingo/speechdb.py .
+ADD catholingo/database.py .
 
 CMD ["python", "./admin.py"]

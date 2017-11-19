@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 #coding: utf8
 
-import speechdb
+import database
 import os
 from commands import TextOrder, TalkativeCommandOrder, OrderPool
-from speechdb import Word, Speech
+from database import Word, Speech
 
 def _conditions(*args):
 	result = None
@@ -21,29 +21,28 @@ class WordDatabaseOrder(TextOrder):
 		if message[0][0] in ["!", ",", ";", "~", "#", ".", "§"]:
 			return
 
-		speechdb.connect()
-		with speechdb.transaction():
-			for i, word in enumerate(message):
-				pprev_word = message[i-2] if i > 1 else None
-				prev_word  = message[i-1] if i > 0 else None
-				next_word  = message[i+1] if i < len(message)-1 else None
-				nnext_word = message[i+2] if i < len(message)-2 else None
+		with database.connection():
+			with database.transaction():
+				for i, word in enumerate(message):
+					pprev_word = message[i-2] if i > 1 else None
+					prev_word  = message[i-1] if i > 0 else None
+					next_word  = message[i+1] if i < len(message)-1 else None
+					nnext_word = message[i+2] if i < len(message)-2 else None
 
-				pprev_cond = speechdb.none_or(Word.pprevious_word, pprev_word)
-				prev_cond  = speechdb.none_or(Word.previous_word, prev_word)
-				next_cond  = speechdb.none_or(Word.next_word, next_word)
-				nnext_cond = speechdb.none_or(Word.nnext_word, nnext_word)
+					pprev_cond = database.none_or(Word.pprevious_word, pprev_word)
+					prev_cond  = database.none_or(Word.previous_word, prev_word)
+					next_cond  = database.none_or(Word.next_word, next_word)
+					nnext_cond = database.none_or(Word.nnext_word, nnext_word)
 
-				word = Word.select().where((pprev_cond) & (prev_cond) & (next_cond) & (nnext_cond) & (Word.word == word)).first()
-				if not word:
-					word = Word.create(pprevious_word=pprev_word,
-									   previous_word=prev_word,
-									   next_word=next_word,
-									   nnext_word=nnext_word,
-									   word=message[i])
-					word.save()
-				Speech.create(word=word, user=target, chan=source).save()
-		speechdb.close()
+					word = Word.select().where((pprev_cond) & (prev_cond) & (next_cond) & (nnext_cond) & (Word.word == word)).first()
+					if not word:
+						word = Word.create(pprevious_word=pprev_word,
+										   previous_word=prev_word,
+										   next_word=next_word,
+										   nnext_word=nnext_word,
+										   word=message[i])
+						word.save()
+					Speech.create(word=word, user=target, chan=source).save()
 		self.check_speak(source, target, message)
 
 	def check_speak(self, source, target, message):
@@ -54,32 +53,30 @@ class WordDatabaseOrder(TextOrder):
 
 	@staticmethod
 	def generator(conditions=None, first_condition=None, maxlength=100):
-		speechdb.connect()
-		_cond = _conditions(Word.previous_word >> None, conditions, first_condition)
-		word = Word.select().join(Speech).where(_cond).order_by(speechdb.random()).first()
-		if word:
-			pprev_word = None
-			prev_word  = word.word
-			payload = word.word
-			maxlength = 100
-			while maxlength > 0:
-				maxlength -= 1
-				pprev_cond = speechdb.none_or(Word.pprevious_word, pprev_word)
-				prev_cond = speechdb.none_or(Word.previous_word, prev_word)
-				_cond = _conditions(pprev_cond, prev_cond, conditions)
-				word = Word.select().join(Speech).where(_cond).order_by(speechdb.random()).first()
-				if word:
-					payload += " " + word.word
-					if word.next_word is None:
-						break
+		with database.connection():
+			_cond = _conditions(Word.previous_word >> None, conditions, first_condition)
+			word = Word.select().join(Speech).where(_cond).order_by(database.random()).first()
+			if word:
+				pprev_word = None
+				prev_word  = word.word
+				payload = word.word
+				maxlength = 100
+				while maxlength > 0:
+					maxlength -= 1
+					pprev_cond = database.none_or(Word.pprevious_word, pprev_word)
+					prev_cond = database.none_or(Word.previous_word, prev_word)
+					_cond = _conditions(pprev_cond, prev_cond, conditions)
+					word = Word.select().join(Speech).where(_cond).order_by(database.random()).first()
+					if word:
+						payload += " " + word.word
+						if word.next_word is None:
+							break
 
-					pprev_word = prev_word
-					prev_word = word.word
-				else:
-					break
-			speechdb.close()
-			return payload
-		speechdb.close()
+						pprev_word = prev_word
+						prev_word = word.word
+					else:
+						break
+				return payload
 
 class SpeakCommand(TalkativeCommandOrder):
 	COMMAND = "!speak"
@@ -108,8 +105,7 @@ if __name__ == '__main__':
 		logger = logging.getLogger('peewee')
 		logger.setLevel(logging.DEBUG)
 		logger.addHandler(logging.StreamHandler())
-	speechdb.connect()
-	speechdb.create_tables()
-	speechdb.close()
+	with database.connection():
+		database.create_tables()
 	pool = OrderPool(orders=[SpeakCommand, SpeakforCommand, StartWithCommand, WordDatabaseOrder])
 	pool.run()

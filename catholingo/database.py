@@ -36,6 +36,12 @@ def create_tables():
     with transaction():
         db.create_tables([Word, Speech], safe=True)
 
+class connection(object):
+    def __enter__(self):
+        db.connect()
+    def __exit__(self, type, value, traceback):
+        db.close()
+
 class BaseModel(Model):
     class Meta:
         database = db

@@ -1,19 +1,19 @@
 #!/usr/bin/python3
 #coding: utf8
 
-import speechdb
+import database
 from commands import TalkativeCommandOrder, OrderPool
 
 class SQLCommand(TalkativeCommandOrder):
 	COMMAND = "!sql"
 
 	def talk(self, source, target, message):
-		speechdb.connect()
+		database.connect()
 		payload = "Result = "
-		results = speechdb.execute(" ".join(message)).fetchall()
+		results = database.execute(" ".join(message)).fetchall()
 		if results:
 			payload += " ".join([str(r) for r in results])
-		speechdb.close()
+		database.close()
 		return payload
 
 class EvalCommand(TalkativeCommandOrder):

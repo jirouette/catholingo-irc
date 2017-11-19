@@ -2,12 +2,9 @@
 #coding: utf8
 
 import os
-import pydle
 import redis
-import speechdb
 import time
 import json
-from speechdb import Speech, Word
 
 class TextOrder(object):
 	def connect(self):
