@@ -2,10 +2,7 @@
 #coding: utf8
 
 import speechdb
-import time
-import random
 from commands import TalkativeCommandOrder, OrderPool
-from speechdb import Word, Speech
 
 class SQLCommand(TalkativeCommandOrder):
 	COMMAND = "!sql"
