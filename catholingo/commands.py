@@ -9,14 +9,7 @@ import time
 import json
 from speechdb import Speech, Word
 
-class CommandOrder(object):
-	COMMAND = "!test"
-
-	def __init__(self):
-		if type(self.__class__.COMMAND) is not list:
-			self.__class__.COMMAND = [self.__class__.COMMAND]
-		self.__class__.COMMAND = [c[1:] if c[0] == "!" else c for c in self.__class__.COMMAND]
-
+class TextOrder(object):
 	def connect(self):
 		r = redis.StrictRedis(host=os.environ.get('REDIS_HOST', 'localhost'), port=int(os.environ.get('REDIS_PORT', 6379)), db=0)
 		self.pubsub = r.pubsub()
@@ -29,14 +22,28 @@ class CommandOrder(object):
 			message = self.pubsub.get_message()
 			if message:
 				self.parse_message(message)
-			time.sleep(1)
+			time.sleep(0.01)
 
 	def parse_message(self, message):
 		data = message.get('data')
 		if type(data) is bytes:
 			data = data.decode('utf-8').split()
-			if data[2][1:] in self.__class__.COMMAND:
-				self.command(data[0], data[1], data[3:])
+			self.action(data[0], data[1], data[2:])
+
+	def action(self, source, target, message):
+		pass
+
+class CommandOrder(TextOrder):
+	COMMAND = "!test"
+
+	def __init__(self):
+		if type(self.__class__.COMMAND) is not list:
+			self.__class__.COMMAND = [self.__class__.COMMAND]
+		self.__class__.COMMAND = [c[1:] if c[0] == "!" else c for c in self.__class__.COMMAND]
+
+	def action(self, source, target, message):
+		if message[0][1:] in self.__class__.COMMAND:
+			return self.command(source, target, message[1:])
 
 	def command(self, source, target, message):
 		pass
@@ -50,14 +57,23 @@ class TalkativeCommandOrder(CommandOrder):
 		if payload:
 			self.client.message(source, str(payload))
 
-class CommandOrderPool(CommandOrder):
-	def __init__(self, commands):
-		self.commands = [c if type(c) == CommandOrder else c() for c in commands]
+class TalkativeTextOrder(TextOrder):
+	def talk(self, source, target, message):
+		return ""
+
+	def action(self, source, target, message):
+		payload = self.talk(source, target, message)
+		if payload:
+			self.client.message(source, str(payload))
+
+class OrderPool(TextOrder):
+	def __init__(self, orders):
+		self.orders = [o if isinstance(o, TextOrder) else o() for o in orders]
 
 	def parse_message(self, message):
-		for command in self.commands:
-			command.client = self.client
-			command.parse_message(message)
+		for order in self.orders:
+			order.client = self.client
+			order.parse_message(message)
 
 class CommandExecute(object):
 	def __getattr__(self, method):

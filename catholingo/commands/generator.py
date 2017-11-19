@@ -6,7 +6,7 @@ import speechdb
 import time
 import random
 import sys
-from commands import TalkativeCommandOrder, CommandOrderPool
+from commands import TalkativeCommandOrder, OrderPool
 from speechdb import Word, Speech
 
 def _conditions(*args):
@@ -67,5 +67,5 @@ class StartWithCommand(TalkativeCommandOrder):
 		return sentence if sentence else "no result"
 
 if __name__ == '__main__':
-	pool = CommandOrderPool(commands=[SpeakCommand, SpeakforCommand, StartWithCommand])
+	pool = OrderPool(orders=[SpeakCommand, SpeakforCommand, StartWithCommand])
 	pool.run()

@@ -4,7 +4,7 @@
 import speechdb
 import time
 import random
-from commands import TalkativeCommandOrder, CommandOrderPool
+from commands import TalkativeCommandOrder, OrderPool
 from speechdb import Word, Speech
 
 class SQLCommand(TalkativeCommandOrder):
@@ -26,5 +26,5 @@ class EvalCommand(TalkativeCommandOrder):
 		return eval(" ".join(message))
 
 if __name__ == '__main__':
-	pool = CommandOrderPool(commands=[SQLCommand, EvalCommand])
+	pool = OrderPool(orders=[SQLCommand, EvalCommand])
 	pool.run()
