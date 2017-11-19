@@ -8,13 +8,12 @@ class SQLCommand(TalkativeCommandOrder):
 	COMMAND = "!sql"
 
 	def talk(self, source, target, message):
-		database.connect()
-		payload = "Result = "
-		results = database.execute(" ".join(message)).fetchall()
-		if results:
-			payload += " ".join([str(r) for r in results])
-		database.close()
-		return payload
+		with database.connection():
+			payload = "Result = "
+			results = database.execute(" ".join(message)).fetchall()
+			if results:
+				payload += " ".join([str(r) for r in results])
+			return payload
 
 class EvalCommand(TalkativeCommandOrder):
 	COMMAND = "!eval"
