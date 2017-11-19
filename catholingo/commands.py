@@ -13,15 +13,17 @@ class CommandOrder(object):
 	COMMAND = "!test"
 
 	def __init__(self):
+		if self.__class__.COMMAND[0] == "!":
+			self.__class__.COMMAND = self.__class__.COMMAND[1:]
+
+	def connect(self):
 		r = redis.StrictRedis(host=os.environ.get('REDIS_HOST', 'localhost'), port=int(os.environ.get('REDIS_PORT', 6379)), db=0)
 		self.pubsub = r.pubsub()
 		self.pubsub.subscribe(os.environ.get('CATHOLINGO_REDIS_ORDER_CHANNEL', 'catholingo_order'))
 		self.client = CommandExecute()
 
-		if self.__class__.COMMAND[0] == "!":
-			self.__class__.COMMAND = self.__class__.COMMAND[1:]
-
 	def run(self):
+		self.connect()
 		while True:
 			message = self.pubsub.get_message()
 			if message:
@@ -45,8 +47,16 @@ class TalkativeCommandOrder(CommandOrder):
 	def command(self, source, target, message):
 		payload = self.talk(source, target, message)
 		if payload:
-			self.client.message(source, payload)
+			self.client.message(source, str(payload))
 
+class CommandOrderPool(CommandOrder):
+	def __init__(self, commands):
+		self.commands = [c if type(c) == CommandOrder else c() for c in commands]
+
+	def parse_message(self, message):
+		for command in self.commands:
+			command.client = self.client
+			command.parse_message(message)
 
 class CommandExecute(object):
 	def __getattr__(self, method):

@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 #coding: utf8
 
-import commands
 import speechdb
 import time
 import random
+from commands import TalkativeCommandOrder, CommandOrderPool
 from speechdb import Word, Speech
 
-class Sql(commands.TalkativeCommandOrder):
+class SQLCommand(TalkativeCommandOrder):
 	COMMAND = "!sql"
 
 	def talk(self, source, target, message):
@@ -19,5 +19,12 @@ class Sql(commands.TalkativeCommandOrder):
 		speechdb.close()
 		return payload
 
+class EvalCommand(TalkativeCommandOrder):
+	COMMAND = "!eval"
+
+	def talk(self, source, target, message):
+		return eval(" ".join(message))
+
 if __name__ == '__main__':
-	Sql().run()
+	pool = CommandOrderPool(commands=[SQLCommand, EvalCommand])
+	pool.run()

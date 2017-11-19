@@ -8,7 +8,7 @@ import random
 import sys
 from speechdb import Word, Speech
 
-class Speak(commands.TalkativeCommandOrder):
+class SpeakCommand(commands.TalkativeCommandOrder):
 	COMMAND = "!speak"
 
 	def talk(self, source, target, message):
@@ -40,4 +40,4 @@ class Speak(commands.TalkativeCommandOrder):
 			return "no result"
 
 if __name__ == '__main__':
-	Speak().run()
+	SpeakCommand().run()

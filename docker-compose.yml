@@ -27,11 +27,11 @@ services:
         container_name: "catholingo_redis"
         restart: always
         image: "redis:latest"
-    ms_speak:
-        container_name: "catholingo_speak"
+    ms_generator:
+        container_name: "catholingo_generator"
         build:
             context: .
-            dockerfile: ./commands.Dockerfile
+            dockerfile: ./generator.Dockerfile
         restart: always
         links:
           - db
@@ -39,13 +39,12 @@ services:
         environment:
             DATABASE: mysql://root:catholingo@db/catholingo
             REDIS_HOST: "redis"
-            COMMAND: "speak.py"
             DEBUG: "1"
-    ms_sql:
-        container_name: "catholingo_sql"
+    ms_admin:
+        container_name: "catholingo_admin"
         build:
             context: .
-            dockerfile: ./sql.Dockerfile
+            dockerfile: ./admin.Dockerfile
         restart: always
         links:
           - db
@@ -53,5 +52,4 @@ services:
         environment:
             DATABASE: mysql://root:catholingo@db/catholingo
             REDIS_HOST: "redis"
-            COMMAND: "sql.py"
             DEBUG: "1"
