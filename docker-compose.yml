@@ -13,6 +13,7 @@ services:
           DATABASE: mysql://root:catholingo@db/catholingo
           CHANNELS: "#catholingo"
           REDIS_HOST: "redis"
+          DEBUG: "1"
     db:
       container_name: "catholingo_db"
       restart: always
@@ -26,3 +27,31 @@ services:
         container_name: "catholingo_redis"
         restart: always
         image: "redis:latest"
+    ms_speak:
+        container_name: "catholingo_speak"
+        build:
+            context: .
+            dockerfile: ./commands.Dockerfile
+        restart: always
+        links:
+          - db
+          - redis
+        environment:
+            DATABASE: mysql://root:catholingo@db/catholingo
+            REDIS_HOST: "redis"
+            COMMAND: "speak.py"
+            DEBUG: "1"
+    ms_sql:
+        container_name: "catholingo_sql"
+        build:
+            context: .
+            dockerfile: ./sql.Dockerfile
+        restart: always
+        links:
+          - db
+          - redis
+        environment:
+            DATABASE: mysql://root:catholingo@db/catholingo
+            REDIS_HOST: "redis"
+            COMMAND: "sql.py"
+            DEBUG: "1"
