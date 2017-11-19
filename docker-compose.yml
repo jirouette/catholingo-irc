@@ -27,11 +27,11 @@ services:
         container_name: "catholingo_redis"
         restart: always
         image: "redis:latest"
-    ms_generator:
-        container_name: "catholingo_generator"
+    ms_speech:
+        container_name: "catholingo_speech"
         build:
             context: .
-            dockerfile: ./generator.Dockerfile
+            dockerfile: ./speech.Dockerfile
         restart: always
         links:
           - db
