@@ -30,12 +30,16 @@ Highlighting the bot triggers the **!speak** command.
 
 ### Admin
 
-The **Admin** service allows users to use admin centered actions. It is highly unsecure and it currently does not recognize admin users. You shouldn't use it. If you still want to use it, it is recommended to use the `docker-compose` architecture.
+The **Admin** service allows users to use admin centered actions. Some of its commands are highly unsecure and the service currently does not recognize admin users. You shouldn't use them. If you still want to use them, add an environment var `UNSECURE_MODE` in the admin service with value `1`.
+
 
 The services provides the following commands :
-- **!sql** : Execute arbitrary SQL queries in the configured database
-- **!eval** : Execute arbitrary Python statements
-- **!shell** : Execute arbitrary shell commands
+- **!sql** : Execute arbitrary SQL queries in the configured database (require `UNSECURE_MODE`)
+- **!eval** : Execute arbitrary Python statements (require `UNSECURE_MODE`)
+- **!shell** : Execute arbitrary shell commands (require `UNSECURE_MODE`)
+- **!mute <channels/nicknames>** : Force the bot to remain silent in the selected channels (or nicknames)
+- **!unmute <channels/nicknames>** : Cancel the previous command
+
 
 ## Custom services
 
