@@ -35,6 +35,7 @@ The **Admin** service allows users to use admin centered actions. It is highly u
 The services provides the following commands :
 - **!sql** : Execute arbitrary SQL queries in the configured database
 - **!eval** : Execute arbitrary Python statements
+- **!shell** : Execute arbitrary shell commands
 
 ## Custom services
 
