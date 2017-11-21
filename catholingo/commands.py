@@ -79,11 +79,3 @@ class CommandExecute(object):
 			r = redis.StrictRedis(host=os.environ.get('REDIS_HOST', 'localhost'), port=int(os.environ.get('REDIS_PORT', 6379)), db=0)
 			return r.publish(os.environ.get('CATHOLINGO_REDIS_EXECUTE_CHANNEL', 'catholingo_execute'), payload)
 		return execute
-
-if __name__ == '__main__':
-	if os.environ.get('DEBUG'):
-		import logging
-		logger = logging.getLogger('peewee')
-		logger.setLevel(logging.DEBUG)
-		logger.addHandler(logging.StreamHandler())
-	CommandOrder().run()
