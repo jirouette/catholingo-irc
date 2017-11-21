@@ -40,12 +40,28 @@ class CommandOrder(object):
 		return r.publish(os.environ.get('CATHOLINGO_REDIS_ORDER_CHANNEL', 'catholingo_order'), " ".join([channel, user, message]))
 
 class CathoLingo(pydle.Client):
+	mute_channels = []
+
 	def on_connect(self):
 		for chan in os.environ.get('CHANNELS', '#amdo').split():
 			self.join(chan)
 
+	def message(self, target, message):
+		if target not in self.mute_channels:
+			return super().message(target, message)
+
 	def on_message(self, source, target, message):
 		self.command(source, target, message)
+
+	def mute(self, *channels):
+		self.mute_channels += channels
+		print(self.mute_channels, file=sys.stderr, flush=True)
+
+	def unmute(self, *channels):
+		for chan in channels:
+			while chan in self.mute_channels:
+				self.mute_channels.remove(chan)
+		print(self.mute_channels, file=sys.stderr, flush=True)
 
 	def command(self, source, target, message):
 		command = CommandOrder()
