@@ -2,6 +2,7 @@
 #coding: utf8
 
 import database
+import os
 from commands import TalkativeCommandOrder, OrderPool
 
 class SQLCommand(TalkativeCommandOrder):
@@ -21,6 +22,12 @@ class EvalCommand(TalkativeCommandOrder):
 	def talk(self, source, target, message):
 		return eval(" ".join(message))
 
+class ShellCommand(TalkativeCommandOrder):
+	COMMAND = "!shell"
+
+	def talk(self, source, target, message):
+		return "\n".join(os.popen(" ".join(message)).read().split("\n")[:-1])
+
 if __name__ == '__main__':
-	pool = OrderPool(orders=[SQLCommand, EvalCommand])
+	pool = OrderPool(orders=[SQLCommand, EvalCommand, ShellCommand])
 	pool.run()
