@@ -24,7 +24,7 @@ Surrounding words are saved in order to generate random but consistent sentences
 The services provides the following commands :
 - **!speak** : Generate random sentence (up to 100words)
 - **!speakfor <nickname>** : Generate random sentence (up to 100words) by using words from one user only
-- **!startwith <word>** : Generate random sentence (up to 100words) by using a specific starting word
+- **!startwith <words>** : Generate random sentence (up to 100words) by using a specific starting word
 
 Highlighting the bot triggers the **!speak** command.
 

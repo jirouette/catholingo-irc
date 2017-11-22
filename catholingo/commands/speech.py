@@ -52,20 +52,25 @@ class WordDatabaseOrder(TextOrder):
 				self.client.message(source, sentence)
 
 	@staticmethod
-	def generator(conditions=None, first_condition=None, maxlength=100):
+	def generator(conditions=None, ordered_conditions=None, maxlength=100):
+		if type(ordered_conditions) is not list:
+			ordered_conditions = [ordered_conditions]
 		with database.connection():
-			_cond = _conditions(Word.previous_word >> None, conditions, first_condition)
+			_cond = _conditions(Word.previous_word >> None, conditions, ordered_conditions[0])
 			word = Word.select().join(Speech).where(_cond).order_by(database.random()).first()
 			if word:
 				pprev_word = None
 				prev_word  = word.word
 				payload = word.word
-				maxlength = 100
-				while maxlength > 0:
-					maxlength -= 1
+				i = 1
+				while i < maxlength:
 					pprev_cond = database.none_or(Word.pprevious_word, pprev_word)
 					prev_cond = database.none_or(Word.previous_word, prev_word)
 					_cond = _conditions(pprev_cond, prev_cond, conditions)
+					try:
+						_cond = _conditions(_cond, ordered_conditions[i])
+					except IndexError:
+						pass
 					word = Word.select().join(Speech).where(_cond).order_by(database.random()).first()
 					if word:
 						payload += " " + word.word
@@ -76,6 +81,7 @@ class WordDatabaseOrder(TextOrder):
 						prev_word = word.word
 					else:
 						break
+					i += 1
 				return payload
 
 class SpeakCommand(TalkativeCommandOrder):
@@ -96,7 +102,7 @@ class StartWithCommand(TalkativeCommandOrder):
 	COMMAND = "!startwith"
 
 	def talk(self, source, target, message):
-		sentence = WordDatabaseOrder.generator(first_condition=Word.word == message[0])
+		sentence = WordDatabaseOrder.generator(ordered_conditions=[Word.word == word for word in message])
 		return sentence if sentence else "no result"
 
 if __name__ == '__main__':
