@@ -7,9 +7,13 @@ import time
 import json
 
 class TextOrder(object):
+	CONFIG_PREFIX = "catholingo_config_"
+
+	def _redis(self):
+		return redis.StrictRedis(host=os.environ.get('REDIS_HOST', 'localhost'), port=int(os.environ.get('REDIS_PORT', 6379)), db=0)
+
 	def connect(self):
-		r = redis.StrictRedis(host=os.environ.get('REDIS_HOST', 'localhost'), port=int(os.environ.get('REDIS_PORT', 6379)), db=0)
-		self.pubsub = r.pubsub()
+		self.pubsub = self._redis().pubsub()
 		self.pubsub.subscribe(os.environ.get('CATHOLINGO_REDIS_ORDER_CHANNEL', 'catholingo_order'))
 		self.client = CommandExecute()
 
@@ -29,6 +33,15 @@ class TextOrder(object):
 
 	def action(self, source, target, message):
 		pass
+
+	def config(self, label, default=None):
+		value = self._redis().get(self.CONFIG_PREFIX+label)
+		if value:
+			return value.decode('utf-8')
+		return default
+
+	def set_config(self, label, value):
+		return self._redis().set(self.CONFIG_PREFIX+label, str(value))
 
 class CommandOrder(TextOrder):
 	COMMAND = "!test"
