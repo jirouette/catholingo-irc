@@ -23,8 +23,8 @@ Surrounding words are saved in order to generate random but consistent sentences
 
 The services provides the following commands :
 - **!speak** : Generate random sentence (up to 100words)
-- **!speakfor <nickname>** : Generate random sentence (up to 100words) by using words from one user only
-- **!startwith <words>** : Generate random sentence (up to 100words) by using a specific starting word
+- **!speakfor &lt;nickname&gt;** : Generate random sentence (up to 100words) by using words from one user only
+- **!startwith &lt;words&gt;** : Generate random sentence (up to 100words) by using a specific starting word
 
 Highlighting the bot triggers the **!speak** command.
 
@@ -44,9 +44,9 @@ The services provides the following commands :
 - **!sql** : Execute arbitrary SQL queries in the configured database (require `UNSECURE_MODE`)
 - **!eval** : Execute arbitrary Python statements (require `UNSECURE_MODE`)
 - **!shell** : Execute arbitrary shell commands (require `UNSECURE_MODE`)
-- **!config <label> [newvalue]** : Get or set a configuration property by its key
-- **!mute <channels/nicknames>** : Force the bot to remain silent in the selected channels (or nicknames)
-- **!unmute <channels/nicknames>** : Cancel the previous command
+- **!config &lt;label&gt; [newvalue]** : Get or set a configuration property by its key
+- **!mute &lt;channels/nicknames&gt;** : Force the bot to remain silent in the selected channels (or nicknames)
+- **!unmute &lt;channels/nicknames&gt;** : Cancel the previous command
 
 
 ## Custom services
