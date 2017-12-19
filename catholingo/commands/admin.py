@@ -36,6 +36,19 @@ class MuteCommand(TalkativeCommandOrder):
 		print("muted",message)
 		return "OK"
 
+class ConfigCommand(TalkativeCommandOrder):
+	COMMAND = "!config"
+
+	def talk(self, source, target, message):
+		if len(message) < 1:
+			return "Usage: "+self.COMMAND[0]+" label [value]"
+		elif len(message) == 1:
+			return message[0] + "= " + str(self.config(message[0]))
+		else:
+			label = message[0]
+			self.set_config(label, " ".join(message[1:]))
+			return self.talk(source, target, [message[0]])
+
 class UnmuteCommand(TalkativeCommandOrder):
 	COMMAND = "!unmute"
 
@@ -45,7 +58,7 @@ class UnmuteCommand(TalkativeCommandOrder):
 		return "OK"
 
 if __name__ == '__main__':
-	orders = [MuteCommand, UnmuteCommand]
+	orders = [MuteCommand, UnmuteCommand, ConfigCommand]
 	if os.environ.get('UNSECURE_MODE') == '1':
 		orders += [SQLCommand, EvalCommand, ShellCommand]
 	pool = OrderPool(orders=orders)
