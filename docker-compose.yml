@@ -53,3 +53,14 @@ services:
             DATABASE: mysql://root:catholingo@db/catholingo
             REDIS_HOST: "redis"
             DEBUG: "1"
+    ms_messenger:
+        container_name: "catholingo_messenger"
+        build:
+            context: .
+            dockerfile: ./messenger.Dockerfile
+        restart: always
+        links:
+          - redis
+        environment:
+            REDIS_HOST: "redis"
+            DEBUG: "1"
