@@ -103,7 +103,7 @@ class StartWithCommand(TalkativeCommandOrder):
 
 	def talk(self, source, target, message):
 		sentence = WordDatabaseOrder.generator(ordered_conditions=[Word.word == word for word in message])
-		return sentence if sentence else "no result"
+		return sentence if sentence and sentence.lower().startswith(" ".join(message).lower()) else "no result"
 
 if __name__ == '__main__':
 	if os.environ.get('DEBUG'):
