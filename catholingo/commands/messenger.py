@@ -23,9 +23,10 @@ class TellCommand(TalkativeCommandOrder):
 		if len(message) < 2:
 			return "Usage: "+self.COMMAND[0]+" nickname message..."
 		label = MESSENGER_PREFIX+source+"_"+message[0]
+		timestamp = '{0:%Y-%m-%d %H:%M:%S %Z}'.format(datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).replace('+00:00', '')
 
 		messages = json.loads(self.config(label, "[]"))
-		messages.append({'author': target, 'message': " ".join(message[1:]), 'datetime': datetime.datetime.now().isoformat()})
+		messages.append({'author': target, 'message': " ".join(message[1:]), 'datetime': timestamp})
 		self.set_config(label, json.dumps(messages))
 		return "OK"
 
