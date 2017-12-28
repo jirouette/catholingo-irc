@@ -6,10 +6,11 @@ import json
 from commands import TalkativeCommandOrder, TextOrder, OrderPool
 
 MESSENGER_PREFIX = "MESSENGER_"
+MESSENGER_SEPARATOR = "_"
 
 class MessengerOrder(TextOrder):
 	def action(self, source, target, message):
-		label = MESSENGER_PREFIX+source+"_"+target
+		label = MESSENGER_SEPARATOR.join([MESSENGER_PREFIX, source, target])
 		messages = json.loads(self.config(label, "[]"))
 		for m in messages:
 			self.client.message(source, target+": ["+m.get('datetime')+"] <"+m.get('author')+"> "+m.get('message'))
@@ -22,7 +23,7 @@ class TellCommand(TalkativeCommandOrder):
 	def talk(self, source, target, message):
 		if len(message) < 2:
 			return "Usage: "+self.COMMAND[0]+" nickname message..."
-		label = MESSENGER_PREFIX+source+"_"+message[0]
+		label = MESSENGER_SEPARATOR.join([MESSENGER_PREFIX, source, message[0]])
 		timestamp = '{0:%Y-%m-%d %H:%M:%S %Z}'.format(datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).replace('+00:00', '')
 
 		messages = json.loads(self.config(label, "[]"))
