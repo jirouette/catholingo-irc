@@ -64,3 +64,14 @@ services:
         environment:
             REDIS_HOST: "redis"
             DEBUG: "1"
+    ms_hue:
+        container_name: "catholingo_hue"
+        build:
+            context: .
+            dockerfile: ./hue.Dockerfile
+        restart: always
+        links:
+          - redis
+        environment:
+            REDIS_HOST: "redis"
+            DEBUG: "1"
