@@ -6,6 +6,9 @@ import redis
 import time
 import json
 
+class StopAndTalkException(Exception):
+	pass
+
 class TextOrder(object):
 	CONFIG_PREFIX = "catholingo_config_"
 
@@ -63,18 +66,24 @@ class TalkativeCommandOrder(CommandOrder):
 		return ""
 
 	def command(self, source, target, message):
-		payload = self.talk(source, target, message)
-		if payload:
-			self.client.message(source, str(payload))
+		try:
+			payload = self.talk(source, target, message)
+			if payload:
+				raise StopAndTalkException(payload)
+		except StopAndTalkException as e:
+			self.client.message(source, str(e))
 
 class TalkativeTextOrder(TextOrder):
 	def talk(self, source, target, message):
 		return ""
 
 	def action(self, source, target, message):
-		payload = self.talk(source, target, message)
-		if payload:
-			self.client.message(source, str(payload))
+		try:
+			payload = self.talk(source, target, message)
+			if payload:
+				self.client.message(source, str(payload))
+		except StopAndTalkException as e:
+			self.client.message(source, str(e))
 
 class OrderPool(TextOrder):
 	def __init__(self, orders):
