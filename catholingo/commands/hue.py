@@ -3,11 +3,18 @@
 
 import datetime
 import json
+import random
+import time
 from qhue import Bridge
+from threading import Thread
 from commands import TalkativeCommandOrder, TextOrder, OrderPool, StopAndTalkException
 
 BRIDGE_HOST_CONFIG = "HUE_BRIDGE_HOST"
 BRIDGE_USERNAME_CONFIG = "HUE_USERNAME" # aoFVhPv0DRBtX47bg1PLsNMPStMfInwQfhQ9ImjW
+
+def generate_color():
+    charset = '0123456789ABCDEF'
+    return "".join([random.choice(charset) for _ in range(6)])
 
 def hexa_to_rgb(color):
     try:
@@ -111,6 +118,40 @@ class LightCommand(HueBase):
             return "Failed :("
         return mode+" \o/"
 
+class PartyThread(Thread):
+    def __init__(self, light, duration, interval, bridge):
+        super().__init__()
+        self.light = light
+        self.duration = duration
+        self.interval = interval
+        self.bridge = bridge
+
+    def run(self):
+        nbcolors = self.duration // self.interval
+        colors = (generate_color() for __ in range(nbcolors))
+        for color in colors:
+            r,g,b = hexa_to_rgb(color)
+            xy = rgb_to_xy(r,g,b)
+            self.bridge.lights[self.light].state(on=True, xy=xy)
+            time.sleep(self.interval)
+
+class PartyCommand(HueBase):
+    COMMAND = "!party"
+
+    def talk(self, source, target, message):
+        self.init()
+        ERR_MSG = "Usage: "+self.COMMAND[0]+" <light index> <duration> <interval>"
+        if len(message) < 3:
+            return ERR_MSG
+        light = message[0]
+        try:
+            duration = int(message[1])
+            interval = int(message[2])
+        except:
+            return ERR_MSG
+
+        PartyThread(light, duration, interval, self.bridge).start()
+        return "PARTY \o/"
 if __name__ == '__main__':
-	pool = OrderPool(orders=[ColorCommand, BrightnessCommand, LightCommand])
+	pool = OrderPool(orders=[ColorCommand, BrightnessCommand, LightCommand, PartyCommand])
 	pool.run()
