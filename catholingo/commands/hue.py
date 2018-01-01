@@ -9,6 +9,12 @@ from commands import TalkativeCommandOrder, TextOrder, OrderPool, StopAndTalkExc
 BRIDGE_HOST_CONFIG = "HUE_BRIDGE_HOST"
 BRIDGE_USERNAME_CONFIG = "HUE_USERNAME" # aoFVhPv0DRBtX47bg1PLsNMPStMfInwQfhQ9ImjW
 
+def hexa_to_rgb(color):
+    try:
+        return (int('0x'+color[i:i+2], base=16) for i in range(0, len(color), 2))
+    except:
+        return (0, 0, 0)
+
 def gamma_correction(c):
 	return pow((c+0.055) / 1.055, 2.4) if c > 0.04045 else (c / 12.92)
 
@@ -54,10 +60,7 @@ class ColorCommand(HueBase):
 
         light = message[0]
         color = message[1]
-        try:
-            r, g, b = [int('0x'+color[i:i+2], base=16) for i in range(0, len(color), 2)]
-        except:
-            return ERR_MSG
+        r, g, b = hexa_to_rgb(color)
         try:
             self.bridge.lights[light].state(xy=rgb_to_xy(r,g,b))
         except:
