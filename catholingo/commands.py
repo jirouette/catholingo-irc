@@ -32,7 +32,10 @@ class TextOrder(object):
 		data = message.get('data')
 		if type(data) is bytes:
 			data = data.decode('utf-8').split()
-			self.action(data[0], data[1], data[2:])
+			try:
+				self.action(data[0], data[1], data[2:])
+			except StopAndTalkException as e:
+				self.client.message(data[0], str(e))
 
 	def action(self, source, target, message):
 		pass
@@ -66,24 +69,18 @@ class TalkativeCommandOrder(CommandOrder):
 		return ""
 
 	def command(self, source, target, message):
-		try:
-			payload = self.talk(source, target, message)
-			if payload:
-				raise StopAndTalkException(payload)
-		except StopAndTalkException as e:
-			self.client.message(source, str(e))
+		payload = self.talk(source, target, message)
+		if payload:
+			raise StopAndTalkException(payload)
 
 class TalkativeTextOrder(TextOrder):
 	def talk(self, source, target, message):
 		return ""
 
 	def action(self, source, target, message):
-		try:
-			payload = self.talk(source, target, message)
-			if payload:
-				self.client.message(source, str(payload))
-		except StopAndTalkException as e:
-			self.client.message(source, str(e))
+		payload = self.talk(source, target, message)
+		if payload:
+			raise StopAndTalkException(payload)
 
 class OrderPool(TextOrder):
 	def __init__(self, orders):
