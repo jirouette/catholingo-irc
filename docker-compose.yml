@@ -53,6 +53,7 @@ services:
             DATABASE: mysql://root:catholingo@db/catholingo
             REDIS_HOST: "redis"
             DEBUG: "1"
+            CATHOLINGO_ADMIN_NICKNAME: "jr"
     ms_messenger:
         container_name: "catholingo_messenger"
         build:
@@ -75,3 +76,4 @@ services:
         environment:
             REDIS_HOST: "redis"
             DEBUG: "1"
+            CATHOLINGO_ADMIN_NICKNAME: "jr"

@@ -3,8 +3,9 @@
 
 import database
 import os
-from commands import TalkativeCommandOrder, OrderPool
+from commands import TalkativeCommandOrder, OrderPool, AdminCommandOrder
 
+@AdminCommandOrder
 class SQLCommand(TalkativeCommandOrder):
 	COMMAND = "!sql"
 
@@ -16,18 +17,21 @@ class SQLCommand(TalkativeCommandOrder):
 				payload += " ".join([str(r) for r in results])
 			return payload
 
+@AdminCommandOrder
 class EvalCommand(TalkativeCommandOrder):
 	COMMAND = "!eval"
 
 	def talk(self, source, target, message):
 		return eval(" ".join(message))
 
+@AdminCommandOrder
 class ShellCommand(TalkativeCommandOrder):
 	COMMAND = "!shell"
 
 	def talk(self, source, target, message):
 		return "\n".join(os.popen(" ".join(message)).read().split("\n")[:-1])
 
+@AdminCommandOrder
 class MuteCommand(TalkativeCommandOrder):
 	COMMAND = "!mute"
 
@@ -36,6 +40,7 @@ class MuteCommand(TalkativeCommandOrder):
 		print("muted",message)
 		return "OK"
 
+@AdminCommandOrder
 class ConfigCommand(TalkativeCommandOrder):
 	COMMAND = "!config"
 
@@ -49,6 +54,7 @@ class ConfigCommand(TalkativeCommandOrder):
 			self.set_config(label, " ".join(message[1:]))
 			return self.talk(source, target, [message[0]])
 
+@AdminCommandOrder
 class UnmuteCommand(TalkativeCommandOrder):
 	COMMAND = "!unmute"
 

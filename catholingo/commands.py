@@ -91,6 +91,17 @@ class OrderPool(TextOrder):
 			order.client = self.client
 			order.parse_message(message)
 
+def AdminCommandOrder(CommandOrderCls):
+	class AdminCommandOrderCls(CommandOrderCls):
+		def command(self, source, target, message):
+			for admins in (self.config('ADMINS_'+self.__class__.COMMAND[0]),
+						   self.config('ADMINS'),
+						   os.environ.get('CATHOLINGO_ADMIN_NICKNAME')):
+				if admins and target in admins.split():
+					return super().command(source, target, message)
+			raise StopAndTalkException("Command reserved to admin")
+	return AdminCommandOrderCls
+
 class CommandExecute(object):
 	def __getattr__(self, method):
 		def execute(*args, **kwargs):

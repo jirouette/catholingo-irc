@@ -7,7 +7,8 @@ import random
 import time
 from qhue import Bridge
 from threading import Thread
-from commands import TalkativeCommandOrder, TextOrder, OrderPool, StopAndTalkException
+from commands import (TalkativeCommandOrder, TextOrder, OrderPool,
+                      StopAndTalkException, AdminCommandOrder)
 
 BRIDGE_HOST_CONFIG = "HUE_BRIDGE_HOST"
 BRIDGE_USERNAME_CONFIG = "HUE_USERNAME" # aoFVhPv0DRBtX47bg1PLsNMPStMfInwQfhQ9ImjW
@@ -54,6 +55,7 @@ class HueBase(TalkativeCommandOrder):
 
         self.bridge = Bridge(self.host, self.username)
 
+@AdminCommandOrder
 class ColorCommand(HueBase):
     COMMAND = ["!color", "!colour", "!rgb"]
 
@@ -74,6 +76,7 @@ class ColorCommand(HueBase):
             return "Failed :("
         return color+" \o/"
 
+@AdminCommandOrder
 class BrightnessCommand(HueBase):
     COMMAND = ["!brightness", "!bri", "!bright"]
 
@@ -98,6 +101,7 @@ class BrightnessCommand(HueBase):
             return "Failed :("
         return str(bri)+" \o/"
 
+@AdminCommandOrder
 class LightCommand(HueBase):
     COMMAND = "!light"
 
@@ -135,6 +139,7 @@ class PartyThread(Thread):
             self.bridge.lights[self.light].state(on=True, xy=xy)
             time.sleep(self.interval)
 
+@AdminCommandOrder
 class PartyCommand(HueBase):
     COMMAND = "!party"
 
@@ -152,6 +157,7 @@ class PartyCommand(HueBase):
 
         PartyThread(light, duration, interval, self.bridge).start()
         return "PARTY \o/"
+
 if __name__ == '__main__':
 	pool = OrderPool(orders=[ColorCommand, BrightnessCommand, LightCommand, PartyCommand])
 	pool.run()
