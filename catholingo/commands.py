@@ -97,8 +97,10 @@ def AdminCommandOrder(CommandOrderCls):
 			for admins in (self.config('ADMINS_'+self.__class__.COMMAND[0]),
 						   self.config('ADMINS'),
 						   os.environ.get('CATHOLINGO_ADMIN_NICKNAME')):
-				if admins and target in admins.split():
-					return super().command(source, target, message)
+				if admins:
+					admins = admins.split()
+					if target in admins or '*' in admins:
+						return super().command(source, target, message)
 			raise StopAndTalkException("Command reserved to admin")
 	return AdminCommandOrderCls
 
