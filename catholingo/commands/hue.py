@@ -61,7 +61,7 @@ class ColorCommand(HueBase):
 
     def talk(self, source, target, message):
         self.init()
-        ERR_MSG = "Usage: "+self.COMMAND[0]+" <light index> <RGB>"
+        ERR_MSG = "Usage: !"+self.COMMAND[0]+" <light index> <RGB>"
         if len(message) < 2:
             return ERR_MSG
         if len(message[1]) != 6:
@@ -82,7 +82,7 @@ class BrightnessCommand(HueBase):
 
     def talk(self, source, target, message):
         self.init()
-        ERR_MSG = "Usage: "+self.COMMAND[0]+" <light index> <0-255>"
+        ERR_MSG = "Usage: !"+self.COMMAND[0]+" <light index> <0-255>"
         if len(message) < 2:
             return ERR_MSG
 
@@ -107,7 +107,7 @@ class LightCommand(HueBase):
 
     def talk(self, source, target, message):
         self.init()
-        ERR_MSG = "Usage: "+self.COMMAND[0]+" <light index> <on/off>"
+        ERR_MSG = "Usage: !"+self.COMMAND[0]+" <light index> <on/off>"
         if len(message) < 2:
             return ERR_MSG
 
@@ -152,7 +152,7 @@ class PartyCommand(HueBase):
 
     def talk(self, source, target, message):
         self.init()
-        ERR_MSG = "Usage: "+self.COMMAND[0]+" <light index> <duration> <interval>"
+        ERR_MSG = "Usage: !"+self.COMMAND[0]+" <light index> <duration> <interval>"
         if len(message) < 3:
             return ERR_MSG
         light = message[0]
