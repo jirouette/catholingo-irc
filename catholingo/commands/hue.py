@@ -11,7 +11,7 @@ from commands import (TalkativeCommandOrder, TextOrder, OrderPool,
                       StopAndTalkException, AdminCommandOrder)
 
 BRIDGE_HOST_CONFIG = "HUE_BRIDGE_HOST"
-BRIDGE_USERNAME_CONFIG = "HUE_USERNAME" # aoFVhPv0DRBtX47bg1PLsNMPStMfInwQfhQ9ImjW
+BRIDGE_USERNAME_CONFIG = "HUE_USERNAME"
 
 def generate_color():
     charset = '0123456789ABCDEF'
