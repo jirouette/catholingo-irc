@@ -6,7 +6,7 @@ import json
 import random
 import time
 from qhue import Bridge
-from threading import Thread
+from threading import Thread, current_thread
 from commands import (TalkativeCommandOrder, TextOrder, OrderPool,
                       StopAndTalkException, AdminCommandOrder)
 
@@ -138,10 +138,17 @@ class PartyThread(Thread):
             xy = rgb_to_xy(r,g,b)
             self.bridge.lights[self.light].state(on=True, xy=xy)
             time.sleep(self.interval)
+            if hasattr(current_thread(), 'stop'):
+                break
 
 @AdminCommandOrder
 class PartyCommand(HueBase):
     COMMAND = "!party"
+    parties = []
+
+    def __init__(self):
+        super().__init__()
+        self.__class__.parties = []
 
     def talk(self, source, target, message):
         self.init()
@@ -155,9 +162,21 @@ class PartyCommand(HueBase):
         except:
             return ERR_MSG
 
-        PartyThread(light, duration, interval, self.bridge).start()
+        thread = PartyThread(light, duration, interval, self.bridge)
+        thread.start()
+        self.__class__.parties.append(thread)
         return "PARTY \o/"
 
+@AdminCommandOrder
+class EndPartyCommand(TalkativeCommandOrder):
+    COMMAND = ["!endparty", "!endparties"]
+
+    def talk(self, source, target, message):
+        while PartyCommand.parties:
+            PartyCommand.parties.pop().stop = True
+        return "Oooh :("
+
 if __name__ == '__main__':
-	pool = OrderPool(orders=[ColorCommand, BrightnessCommand, LightCommand, PartyCommand])
+	pool = OrderPool(orders=[ColorCommand, BrightnessCommand, LightCommand,
+                             PartyCommand, EndPartyCommand])
 	pool.run()
