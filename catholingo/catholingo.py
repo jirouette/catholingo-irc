@@ -9,6 +9,8 @@ import json
 import sys
 from threading import Thread
 
+BRIDGE_BOTS = os.environ.get('BRIDGE_BOTS', '').split()
+
 class CommandListener(Thread):
 	def __init__(self, client):
 		Thread.__init__(self)
@@ -51,6 +53,12 @@ class CathoLingo(pydle.Client):
 			return super().message(target, message)
 
 	def on_message(self, source, target, message):
+		if target in BRIDGE_BOTS:
+			message = message.split('\x03] ')
+			target = message[0]
+			message = '\x03] '.join(message[1:])
+			for x in range(0, 16)[::-1]:
+				target = target.replace('[\x03'+str(x), '')
 		self.command(source, target, message)
 
 	def mute(self, *channels):

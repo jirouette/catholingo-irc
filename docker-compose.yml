@@ -14,6 +14,7 @@ services:
           CHANNELS: "#catholingo"
           REDIS_HOST: "redis"
           DEBUG: "1"
+          BRIDGE_BOTS: "Musleckbo"
     db:
       container_name: "catholingo_db"
       restart: always
