@@ -13,6 +13,7 @@ services:
           DATABASE: mysql://root:catholingo@db/catholingo
           CHANNELS: "#catholingo #salsifis"
           REDIS_HOST: "redis"
+          BRIDGE_BOTS: "Musleckbo"
           DEBUG: "1"
     db:
       container_name: "catholingo_db"
