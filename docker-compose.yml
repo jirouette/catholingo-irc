@@ -11,7 +11,7 @@ services:
         - redis
       environment:
           DATABASE: mysql://root:catholingo@db/catholingo
-          CHANNELS: "#catholingo"
+          CHANNELS: "#catholingo #salsifis"
           REDIS_HOST: "redis"
           DEBUG: "1"
     db:
@@ -54,6 +54,7 @@ services:
             REDIS_HOST: "redis"
             DEBUG: "1"
             CATHOLINGO_ADMIN_NICKNAME: "jr"
+            UNSECURE_MODE: "1"
     ms_messenger:
         container_name: "catholingo_messenger"
         build:

@@ -7,4 +7,4 @@ RUN pip install -r ./requirements.txt
 ADD catholingo/catholingo.py .
 ADD catholingo/database.py .
 
-CMD ["python", "./catholingo.py"]
+CMD ["python", "-u", "./catholingo.py"]

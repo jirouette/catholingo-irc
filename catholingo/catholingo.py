@@ -50,7 +50,22 @@ class CathoLingo(pydle.Client):
 		if target not in self.mute_channels:
 			return super().message(target, message)
 
+	@pydle.coroutine
 	def on_message(self, source, target, message):
+<<<<<<< Updated upstream
+=======
+		if target in BRIDGE_BOTS:
+			message = message.split('\x03] ')
+			target = message[0]
+			message = '\x03] '.join(message[1:])
+			for x in range(0, 16)[::-1]:
+				target = target.replace('[\x03'+str(x), '')
+		if message.startswith('!config') or message.startswith('!light'):
+			user = yield self.whois(target)
+			print(user)
+			if not user or not user.get('identified') or user.get('account') != 'jr':
+				return
+>>>>>>> Stashed changes
 		self.command(source, target, message)
 
 	def mute(self, *channels):
@@ -68,6 +83,7 @@ class CathoLingo(pydle.Client):
 		command.order(source, target, message)
 
 if __name__ == '__main__':
+	print("!!", BRIDGE_BOTS)
 	client = CathoLingo(os.environ.get('USERNAME', 'CathoLingo'), realname=os.environ.get('REALNAME', 'la pizzeria'))
 	client.connect(os.environ.get('IRC_HOST', 'chat.freenode.net'), int(os.environ.get('IRC_PORT', 6697)), tls=True, tls_verify=False)
 	CommandListener(client).start()
