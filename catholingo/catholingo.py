@@ -1,82 +1,153 @@
 #!/usr/bin/python3
 #coding: utf8
 
-import os
-import pydle
-import redis
-import time
+import websockets
+import asyncio
 import json
-import sys
-from threading import Thread
+import enum
+import os
+import uuid
+from typings import Any
 
-BRIDGE_BOTS = os.environ.get('BRIDGE_BOTS', '').split()
+class Protocol(enum.Enum):
+	AUTH = "AUTH"
+	SUCCESS = "SUCCESS"
+	ERROR = "ERROR"
+	RPC = "RPC"
+	RPC_RESPONSE = "RPC_RESPONSE"
+	MESSAGE = "MESSAGE"
 
-class CommandListener(Thread):
-	def __init__(self, client):
-		Thread.__init__(self)
-		self.client = client
+	@classmethod
+	def has(cls, value):
+		return value in cls.__members__
 
-	def run(self):
-		r = redis.StrictRedis(host=os.environ.get('REDIS_HOST', 'localhost'), port=int(os.environ.get('REDIS_PORT', 6379)), db=0)
-		self.pubsub = r.pubsub()
-		self.pubsub.subscribe(os.environ.get('CATHOLINGO_REDIS_EXECUTE_CHANNEL', 'catholingo_execute'))
-		while True:
-			message = self.pubsub.get_message()
-			if message:
-				self.parse_message(message)
-			time.sleep(1)
+class ProtocolError(Exception):
+	pass
 
-	def parse_message(self, message):
-		data = message.get('data')
-		if type(data) is bytes:
-			data = json.loads(data.decode('utf-8'))
-			method = data.get('method')
-			args = data.get('args', list())
-			kwargs = data.get('kwargs', dict())
-			if hasattr(self.client, method):
-				return getattr(self.client, method)(*args, **kwargs)
+class Peer(object):
+	websocket = None
+	path = ""
+	app = ""
+	namespace = ""
+	protocol = ""
+	authenticated = False
 
-class CommandOrder(object):
-	def order(self, channel, user, message):
-		r = redis.StrictRedis(host=os.environ.get('REDIS_HOST', 'localhost'), port=int(os.environ.get('REDIS_PORT', 6379)), db=0)
-		return r.publish(os.environ.get('CATHOLINGO_REDIS_ORDER_CHANNEL', 'catholingo_order'), " ".join([channel, user, message]))
+	def __init__(self, server:Server, websocket, path):
+		self.websocket = websocket
+		self.path = path
+		self.server = server
 
-class CathoLingo(pydle.Client):
-	mute_channels = []
+	async def send(self, action:Protocol, data:dict, ID=None):
+		ID = ID or str(uuid.uuid4())
+		message = dict(ID=ID, action=action, data=data)
+		return await self.websocket.send(json.dumps(message))
 
-	def on_connect(self):
-		for chan in os.environ.get('CHANNELS', '#amdo').split():
-			self.join(chan)
+	async def send_error(self, message:str, from_ID=None):
+		data = dict(message=message, from_ID=from_ID)
+		return await self.send(Protocol.ERROR, data)
 
-	def message(self, target, message):
-		if target not in self.mute_channels:
-			return super().message(target, message)
+	async def send_all(self, action:Protocol, data:dict, ID=None):
+		for peer in self.server.peers:
+			try:
+				await peer.send(action, data, ID)
+			except:
+				pass
 
-	def on_message(self, source, target, message):
-		if target in BRIDGE_BOTS:
-			message = message.split('\x03] ')
-			target = message[0]
-			message = '\x03] '.join(message[1:])
-			for x in range(0, 16)[::-1]:
-				target = target.replace('[\x03'+str(x), '')
-		self.command(source, target, message)
+	async def run(self) -> None:
+		async for message in self.websocket:
+			ID = None
+			try:
+				message = json.loads(message)
+				if not (type(message) is dict):
+					raise ProtocolError("Received wrong format message")
+				action = message.get('action')
+				data = message.get('data', dict())
+				ID = message.get("ID")
+				if not (type(data) is dict):
+					raise ProtocolError("Received wrong format data")
+				await self.handle_message(ID, action, data)
+			except ProtocolError as e:
+				await self.send_error(e.message, ID)
+			except Exception as e:
+				await self.send_error(
+					"Internal error while receiving message"+.message,
+					ID)
 
-	def mute(self, *channels):
-		self.mute_channels += channels
-		print(self.mute_channels, file=sys.stderr, flush=True)
+	async def handle_message(self, ID:Any, action:str, data:Any) -> None:
+		if not self.authenticated and action != Protocol.AUTH:
+			raise ProtocolError("Must be authenticated first")
+		elif not Protocol.has(action):
+			raise ProtocolError(f"Unknown action '{action}'")
+		await self[action.lower()](ID, **data)
 
-	def unmute(self, *channels):
-		for chan in channels:
-			while chan in self.mute_channels:
-				self.mute_channels.remove(chan)
-		print(self.mute_channels, file=sys.stderr, flush=True)
 
-	def command(self, source, target, message):
-		command = CommandOrder()
-		command.order(source, target, message)
+	async def auth(
+			self, 
+			ID:Any, 
+			app:str, 
+			namespace:str, 
+			protocol:str
+		) -> None:
+		self.app = app
+		self.namespace = namespace
+		self.protocol = protocol
+		self.authenticated = True
+		await self.send(Protocol.SUCCESS, ID)
+
+	async def error(self, ID:Any, message:str, from_ID:Any = None) -> None:
+		pass
+
+	async def success(self, ID:Any, ackedID:Any) -> None:
+		pass
+
+	async def rpc(self, ID:Any, method:str, args:list, kwargs:dict) -> None:
+		try:
+			ret = await self.server[method](*args, **kwargs)
+			await self.send(Protocol.RPC_RESPONSE, dict(data=ret))
+		except:
+			await self.send_error("Failed to RPC "+method, ID)
+
+	async def rpc_response(self, ID:Any, data:Any) -> None:
+		pass
+
+	async def message(self, 
+					  ID:Any, 
+					  channel:str, 
+					  user:str, 
+					  message:str,
+					  is_trusted:bool) -> None:
+		data = dict(
+			app=self.app,
+			namespace=self.namespace,
+			channel=channel,
+			user=user,
+			message=message,
+			is_trusted=is_trusted)
+		self.send_all(Protocol.MESSAGE, data)
+
+class Server(object):
+	port = 8080
+	host = "localhost"
+	peers = set()
+
+	def __init__(self, host:str, port:int):
+		self.host = host
+		self.port = port
+		self.run_forever = websockets.serve(self.process, self.host, self.port)
+
+	async def process(self, websocket, path) -> None:
+		peer = Peer(self, websocket, path)
+		self.peers.add(peer)
+		try:
+			await peer.run()
+		finally:
+			self.peers.remove(peer)
+
+
 
 if __name__ == '__main__':
-	client = CathoLingo(os.environ.get('USERNAME', 'CathoLingo'), realname=os.environ.get('REALNAME', 'la pizzeria'))
-	client.connect(os.environ.get('IRC_HOST', 'chat.freenode.net'), int(os.environ.get('IRC_PORT', 6697)), tls=True, tls_verify=False)
-	CommandListener(client).start()
-	client.handle_forever()
+	app = Server(
+		host=os.environ.get('HOST', 'localhost'),
+		port=int(os.environ.get('PORT', 8080))
+	)
+	asyncio.run(app.run_forever)

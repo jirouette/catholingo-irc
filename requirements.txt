@@ -3,3 +3,4 @@ pydle==0.8.3
 PyMySQL==0.7.11
 redis==2.10.6
 tornado==4.5.2
+websockets
